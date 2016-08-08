@@ -29,7 +29,7 @@ public class FortuneServiceApplication {
 @RestController
 class MessageController {
 
-    @Value("${message}")
+    @Value("${message:hello}")
     String message;
 
     @RequestMapping("/message")

@@ -6,7 +6,8 @@ applications:
   host: fortunes
   path: target/fortune-service-0.0.1-SNAPSHOT.jar
   buildpack: java_buildpack
-  services: [config-service, fortunes-db]
+  services: [config-server, fortunes-db]
   env:
     SPRING_PROFILES_ACTIVE: pcf
     JAVA_OPTS: -Djava.security.egd=file:/dev/./urandom
+    CF_TARGET: https://api.local.pcfdev.io
