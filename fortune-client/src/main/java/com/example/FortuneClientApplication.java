@@ -1,22 +1,21 @@
 package com.example;
 
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.stereotype.Service;
+import org.springframework.cloud.netflix.feign.EnableFeignClients;
+import org.springframework.cloud.netflix.feign.FeignClient;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
+@EnableFeignClients
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableCircuitBreaker
 public class FortuneClientApplication {
 
     public static void main(String[] args) {
@@ -28,7 +27,7 @@ public class FortuneClientApplication {
 class UiController {
 
     @Autowired
-    FortuneService service;
+    FortuneServiceFeign service;
 
     @RequestMapping("/random")
     public Fortune randomFortune() {
@@ -36,66 +35,39 @@ class UiController {
     }
 }
 
+@Data
 class Fortune {
     private Long id;
     private String text;
-
-    public Fortune() {
+    public Fortune(Long id, String text){
+        this.id=id;
+        this.text=text;
     }
-
-    public Fortune(Long id, String text) {
-        this.id = id;
-        this.text = text;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
+    public Fortune(){
     }
 }
-@Service
-@EnableConfigurationProperties(FortuneProperties.class)
-class FortuneService {
+
+@Component
+@FeignClient(value = "fortune-service", fallback = FortuneServcieFeignFallback.class)
+interface FortuneServiceFeign{
+    @RequestMapping(value="/random", method = RequestMethod.GET)
+    Fortune randomFortune();
+}
+
+@Component
+class FortuneServcieFeignFallback implements FortuneServiceFeign{
 
     @Autowired
     FortuneProperties fortuneProperties;
 
-    @Autowired
-    RestTemplate restTemplate;
-
-    @HystrixCommand(fallbackMethod = "fallbackFortune")
-    public Fortune randomFortune() {
-        return restTemplate.getForObject("http://fortune-service/random", Fortune.class);
-    }
-
-    private Fortune fallbackFortune() {
+    public Fortune randomFortune(){
         return new Fortune(42L, fortuneProperties.getFallbackFortune());
     }
 }
 
-@ConfigurationProperties(prefix = "fortune")
-@RefreshScope
+@Component
+//@ConfigurationProperties(prefix = "fortune")
+@RefreshScope @Data
 class FortuneProperties {
-
     private String fallbackFortune = "Your future is unclear.";
-
-    public String getFallbackFortune() {
-        return fallbackFortune;
-    }
-
-    public void setFallbackFortune(String fallbackFortune) {
-        this.fallbackFortune = fallbackFortune;
-    }
-
 }

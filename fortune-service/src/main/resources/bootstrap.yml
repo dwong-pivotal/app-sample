@@ -1,6 +1,12 @@
 spring:
   application:
     name: fortune-service
-  cloud:
-    config:
-      uri: ${vcap.services.config-server.credentials.uri:http://localhost:8888}
+security:
+  basic:
+    enabled: false
+management:
+  security:
+    enabled: false
+#  cloud:
+#    config:
+#      uri: ${vcap.services.config-server.credentials.uri:http://localhost:8888}

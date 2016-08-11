@@ -2,11 +2,11 @@
 memory: 768M
 instances: 1
 applications:
-- name: fortune-service
-  host: fortunes
-  path: target/fortune-service-0.0.1-SNAPSHOT.jar
+- name: fortune-client
+  host: fortune-client
+  path: target/fortune-client-0.0.1-SNAPSHOT.jar
   buildpack: java_buildpack
-  services: [config-server, fortunes-db, registry]
+  services: [config-server, registry, rabbitmq]
   env:
     SPRING_PROFILES_ACTIVE: pcf
     JAVA_OPTS: -Djava.security.egd=file:/dev/./urandom
